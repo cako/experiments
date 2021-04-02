@@ -69,7 +69,7 @@ def write_overview(price, logreturns):
         showlegend=True,
         xaxis_type="date",
         yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
-        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
         height=400,
@@ -88,7 +88,7 @@ def write_overview(price, logreturns):
         bargap=0.2,
         showlegend=True,
         yaxis=dict(type="linear", title="Probability density"),
-        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
         height=400,
@@ -175,11 +175,20 @@ def write_naive_prediction(price, logreturns):
             line_color=cone_color,
         )
     )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[50],
+            mode="lines",
+            name=f"Predicted price",
+            line={"color": "black", "dash": "dash"},
+        )
+    )
 
     fig.update_layout(
         xaxis_type="date",
         yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
-        margin=dict(l=0, r=0, b=0, t=20, pad=0),
+        margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
         height=400,
@@ -204,13 +213,14 @@ def write_naive_prediction(price, logreturns):
             y=pdf_pred,
             mode="lines",
             name=f"Best-fit Student's t",
+            line_color=PLOTLY_COLORS[4],
         )
     )
     fig.update_layout(
         bargap=0.2,
         showlegend=True,
         yaxis=dict(type="linear", title="Probability density"),
-        margin=dict(l=0, r=0, b=0, t=20, pad=0),
+        margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
         height=400,
