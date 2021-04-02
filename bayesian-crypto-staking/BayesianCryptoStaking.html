@@ -14411,28 +14411,25 @@ Watermark: 2.2.0
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">        response : iteratble</span>
+<span class="sd">        response : iterable</span>
 <span class="sd">            Every item is a dictionary which must contain at least keys:</span>
 <span class="sd">            &#39;open&#39;,&#39;close&#39;, &#39;high&#39;, &#39;low&#39;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">        int</span>
-<span class="sd">            First index where the entry is not zero.</span>
-<span class="sd">    </span>
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">        OHLCVNotFoundError</span>
-<span class="sd">            If all entries are zero, raises OHLCVNotFoundError</span>
+<span class="sd">            First index where the entry is not zero. If none found, return -1.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">first_nonzero</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">datapoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">datapoint</span><span class="p">[</span><span class="s1">&#39;open&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">datapoint</span><span class="p">[</span><span class="s1">&#39;close&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> 
-            <span class="n">datapoint</span><span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">datapoint</span><span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">datapoint</span><span class="p">[</span><span class="s2">&quot;open&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">or</span> <span class="n">datapoint</span><span class="p">[</span><span class="s2">&quot;close&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">or</span> <span class="n">datapoint</span><span class="p">[</span><span class="s2">&quot;high&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">or</span> <span class="n">datapoint</span><span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="p">):</span>
             <span class="n">first_nonzero</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="k">break</span> <span class="c1"># Find first nonzero point</span>
-    <span class="k">if</span> <span class="n">first_nonzero</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">OHLCVNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No nonzero values found for pair </span><span class="si">{</span><span class="n">coin</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">currency</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">break</span>  <span class="c1"># Find first nonzero point</span>
     <span class="k">return</span> <span class="n">first_nonzero</span>
 
 
@@ -14449,7 +14446,7 @@ Watermark: 2.2.0
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">        DataFrame</span>
-<span class="sd">            Containns columns &#39;high&#39;, &#39;low&#39;, &#39;open&#39;, &#39;close&#39;, &#39;volume&#39;.</span>
+<span class="sd">            Contains columns &#39;high&#39;, &#39;low&#39;, &#39;open&#39;, &#39;close&#39;, &#39;volume&#39;.</span>
 <span class="sd">            &#39;Volume&#39; is priced in the `coin`.</span>
 
 <span class="sd">    Raises</span>
@@ -14464,11 +14461,14 @@ Watermark: 2.2.0
     <span class="c1"># `response` may contain many identically zero entries. We need</span>
     <span class="c1">#  to find the first nonzero so as to drop all the useless info</span>
     <span class="n">first_nonzero</span> <span class="o">=</span> <span class="n">find_first_nonzero</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">first_nonzero</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No nonzero values found for pair </span><span class="si">{</span><span class="n">coin</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">currency</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">OHLCVNotFoundError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">first_nonzero</span><span class="p">:])</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;volumefrom&#39;</span><span class="p">:</span> <span class="s1">&#39;volume&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Date&#39;</span>
-    <span class="k">return</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;high&#39;</span><span class="p">,</span> <span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;open&#39;</span><span class="p">,</span> <span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="s1">&#39;volume&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s2">&quot;volumefrom&quot;</span><span class="p">:</span> <span class="s2">&quot;volume&quot;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Date&quot;</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">asfreq</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
 </pre></div>
 
      </div>
