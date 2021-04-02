@@ -1,4 +1,5 @@
 import streamlit as st
+import pymc3 as pm
 import cryptocompare as cc
 import plotly
 import plotly.graph_objects as go
@@ -90,6 +91,7 @@ def write_overview(price):
 
 
 def write_naive_prediction():
+    st.title(pm.__version__)
     return
 
 
