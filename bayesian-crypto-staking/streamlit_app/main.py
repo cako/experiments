@@ -19,7 +19,7 @@ PLOTLY_CONFIG = {
     ],
 }
 
-with open("icon.b64") as f:
+with open("./icon.b64") as f:
     icon = f.read()
     st.set_page_config(
         page_title="Locked Staking Analysis",
