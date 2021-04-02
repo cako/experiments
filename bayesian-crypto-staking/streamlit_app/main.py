@@ -262,7 +262,7 @@ def write_simple_bayesian(price, logreturns):
     # x = np.linspace(logreturns.min(), logreturns.max(), 1001)
     # pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
 
-    st.title(f"Naive Prediction")
+    st.title(f"Simple Bayesian Prediction")
     col1, col2 = st.beta_columns([1.5, 1])
     col1.markdown(f"### Price Prediction")
     fig = go.Figure()
@@ -398,7 +398,7 @@ def write_stochastic_bayesian(price, logreturns):
     # x = np.linspace(logreturns.min(), logreturns.max(), 1001)
     # pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
 
-    st.title(f"Stochastic Prediction")
+    st.title(f"Stochastic Bayesian")
     col1, col2 = st.beta_columns([1.5, 1])
     col1.markdown(f"### Price Prediction")
     fig = go.Figure()
