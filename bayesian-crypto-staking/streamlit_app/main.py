@@ -107,6 +107,7 @@ def write_overview(price, logreturns):
         legend=dict(orientation="h"),
         height=400,
         template=PLOTLY_TEMPLATE,
+        xaxis_range=2 * np.array([-1, 1]) * logreturns.std(),
     )
     col2.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
@@ -239,6 +240,7 @@ def write_naive_prediction(price, logreturns):
         legend=dict(orientation="h"),
         height=400,
         template=PLOTLY_TEMPLATE,
+        xaxis_range=2 * np.array([-1, 1]) * logreturns.std(),
     )
     col2.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
