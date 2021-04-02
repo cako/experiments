@@ -19,14 +19,12 @@ PLOTLY_CONFIG = {
     ],
 }
 
-with open("./icon.b64") as f:
-    icon = f.read()
-    st.set_page_config(
-        page_title="Locked Staking Analysis",
-        page_icon=icon,
-        layout="wide",
-        initial_sidebar_state="auto",
-    )
+st.set_page_config(
+    page_title="Locked Staking Analysis",
+    page_icon=utils.ICON,
+    layout="wide",
+    initial_sidebar_state="auto",
+)
 
 
 # Data-loading functions
