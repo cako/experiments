@@ -112,6 +112,28 @@ def get_student_t_model(data):
     return model
 
 
+# Stochastic Model
+def get_stochastic_model(data):
+    with pm.Model() as model:
+        # Average return
+        mu = pm.Normal("mu", 0.01, sigma=5)
+
+        # Average volatility
+        sigma = pm.Exponential("sigma", 1.0 / 0.02, testval=0.1)
+
+        # Time-dependent volatility
+        log_vol = pm.GaussianRandomWalk("log_vol", sigma ** -2, shape=len(data))
+        lam = pm.Deterministic(
+            "lam", pm.math.exp(-2 * log_vol)
+        )  # Simple way of parametrizing Student's t
+        volatility = pm.Deterministic("volatility", pm.math.exp(log_vol))
+
+        # Log-returns
+        nu = pm.Exponential("nu", 1.0 / 10, testval=5.0)  # Degrees of freedom
+        pm.StudentT("logreturns", nu=nu, lam=lam, mu=mu, observed=data)
+    return model
+
+
 def sample_model(model, n_sims):
     with model:
         trace = pm.sample(
