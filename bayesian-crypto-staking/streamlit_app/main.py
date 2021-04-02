@@ -50,14 +50,14 @@ def get_pairs(exchange=None):
     return sorted(coins) + [""], sorted(currs) + [""]
 
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def get_predictions_simple(logreturns, n_sims, n_days):
     model = utils.get_student_t_model(logreturns)
     spp = utils.sample_model(model, n_sims)
     return spp["logreturns"][:, -n_days:]
 
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def get_predictions_stochastic(logreturns, n_sims, n_days):
     model = utils.get_stochastic_model(logreturns)
     spp = utils.sample_model(model, n_sims)
