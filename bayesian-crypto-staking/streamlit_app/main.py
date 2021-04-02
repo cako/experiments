@@ -1,12 +1,18 @@
 import streamlit as st
-import pymc3 as pm
+
 import cryptocompare as cc
+import numpy as np
+import pandas as pd
 import plotly
 import plotly.graph_objects as go
+import scipy as sp
 
 import utils
 
-
+# ggplot2, seaborn, simple_white, plotly, plotly_white, plotly_dark,
+# presentation, xgridoff, ygridoff, gridon, none
+PLOTLY_TEMPLATE = "ggplot2"
+PLOTLY_COLORS = plotly.colors.qualitative.D3
 PLOTLY_CONFIG = {
     "displaylogo": False,
     "modeBarButtonsToRemove": [
@@ -45,8 +51,8 @@ def get_pairs(exchange=None):
 
 
 # Display functions
-def write_overview(price):
-    st.title(f"Overview of {price.name}")
+def write_overview(price, logreturns):
+    st.title(f"Overview")
     col1, col2 = st.beta_columns([1.5, 1])
     col1.markdown(f"### Price History")
     fig = go.Figure()
@@ -56,48 +62,170 @@ def write_overview(price):
             y=price,
             mode="lines",
             name=price.name,
+            line={"color": "black"},
         )
     )
     fig.update_layout(
-        showlegend=False,
+        showlegend=True,
         xaxis_type="date",
         yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
-        height=300,
-        template="ggplot2",
+        height=400,
+        template=PLOTLY_TEMPLATE,
     )
     col1.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
     col2.markdown(f"### Log-returns")
-    logreturns = utils.get_logreturns(price)
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=logreturns, histnorm="percent"))
+    fig.add_trace(
+        go.Histogram(
+            x=logreturns, histnorm="probability density", name=price.name
+        )
+    )
     fig.update_layout(
-        showlegend=False,
-        yaxis=dict(type="linear", title="Frequency [%]"),
+        bargap=0.2,
+        showlegend=True,
+        yaxis=dict(type="linear", title="Probability density"),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
-        height=300,
-        template="ggplot2",
+        height=400,
+        template=PLOTLY_TEMPLATE,
     )
     col2.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
     return
 
 
-def write_naive_prediction():
-    st.title(pm.__version__)
+def write_naive_prediction(price, logreturns):
+    # Process data
+    n_sims, n_days = 500, 20
+    nu, loc, scale = sp.stats.t.fit(logreturns)
+    logrets_pred = sp.stats.t(nu, loc, scale).rvs(size=(n_sims, n_days))
+
+    index_pred = pd.date_range(
+        start=price.index[-1], periods=n_days + 1, freq="D"
+    )
+    percs_pred = utils.get_percentiles(
+        logrets_pred, starting_price=price[-1], index=index_pred
+    )
+
+    x = np.linspace(logreturns.min(), logreturns.max(), 1001)
+    pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
+
+    st.title(f"Naive Prediction")
+    col1, col2 = st.beta_columns([1.5, 1])
+    col1.markdown(f"### Price Prediction")
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=price.index,
+            y=price,
+            mode="lines",
+            name=price.name,
+            line={"color": "black"},
+            showlegend=True,
+        )
+    )
+    cone_color, cone_group = PLOTLY_COLORS[0], "cone90"
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[5],
+            fill=None,
+            mode="lines",
+            legendgroup=cone_group,
+            showlegend=False,
+            line_color=cone_color,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[95],
+            fill="tonexty",  # fill area between trace0 and trace1
+            mode="lines",
+            name=f"90% Confidence",
+            legendgroup=cone_group,
+            line_color=cone_color,
+        )
+    )
+    cone_color, cone_group = PLOTLY_COLORS[1], "cone50"
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[25],
+            fill=None,
+            mode="lines",
+            legendgroup=cone_group,
+            showlegend=False,
+            line_color=cone_color,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[75],
+            fill="tonexty",  # fill area between trace0 and trace1
+            mode="lines",
+            name=f"50% Confidence",
+            legendgroup=cone_group,
+            line_color=cone_color,
+        )
+    )
+
+    fig.update_layout(
+        xaxis_type="date",
+        yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
+        margin=dict(l=0, r=0, b=0, t=20, pad=0),
+        xaxis_rangeslider_visible=True,
+        legend=dict(orientation="h"),
+        height=400,
+        template=PLOTLY_TEMPLATE,
+        xaxis_range=[
+            price.index[-1] - pd.to_timedelta(3 * n_days, unit="d"),
+            index_pred[-1],
+        ],
+    )
+    col1.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
+
+    col2.markdown(f"### Log-returns")
+    fig = go.Figure()
+    fig.add_trace(
+        go.Histogram(
+            x=logreturns, histnorm="probability density", name=price.name
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=pdf_pred,
+            mode="lines",
+            name=f"Best-fit Student's t",
+        )
+    )
+    fig.update_layout(
+        bargap=0.2,
+        showlegend=True,
+        yaxis=dict(type="linear", title="Probability density"),
+        margin=dict(l=0, r=0, b=0, t=20, pad=0),
+        xaxis_rangeslider_visible=True,
+        legend=dict(orientation="h"),
+        height=400,
+        template=PLOTLY_TEMPLATE,
+    )
+    col2.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
+
     return
 
 
-def write_simple_bayesian():
+def write_simple_bayesian(price, logreturns):
     return
 
 
-def write_stochastic_bayesian():
+def write_stochastic_bayesian(price, logreturns):
     return
 
 
@@ -143,9 +271,10 @@ def main():
     ohlcv = utils.get_ohlcv(coin, curr)
     price = ohlcv[["high", "low", "open", "close"]].mean(axis=1)
     price.name = f"{coin}-{curr}"
+    logreturns = utils.get_logreturns(price)
 
     with st.spinner(f"Loading {selection} ..."):
-        PAGES[selection](price)
+        PAGES[selection](price, logreturns)
 
 
 if __name__ == "__main__":
