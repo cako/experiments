@@ -65,6 +65,74 @@ def get_predictions_stochastic(logreturns, n_sims, n_days):
 
 
 # Display functions
+def write_intro(price, logreturns):
+    _, col, _ = st.beta_columns([0.2, 1, 0.2])
+    col.title("Cryptocurrency Price Ranges")
+    col.subheader("by [Carlos Costa](https://github/cako)")
+    col.markdown("")
+    col.markdown("")
+    col.markdown(
+        """
+    Cryptocurrencies have gone from obscure digital curiosities to multibillion dollar markets. 
+    The vast amount of trading that takes place using these cryptos have allowed them to behave similarly to traditional stocks.
+    This app explores a couple of models for pricing cryptoassets. One uses a naive "best-fit" predictor, another uses a simple Bayesian model, and the last one uses a time-varying stochastic model.
+    Jump into the models by choosing an option on the Dashboard, or read more about the models below.
+    """
+    )
+    col.markdown(
+        "You can find the source code for this app from the top-right menu or from my [GitHub repo](https://github.com/cako/experiments)."
+    )
+    with col.beta_expander("Naive Predictor"):
+        st.markdown(
+            r"""
+Average returns and volatility in finance are usually measured in terms of log variations in price.
+We can calculate the log of the daily returns as defined by
+
+$$\qquad r_t = \log(S_{t}/S_{t-1}) = \log(S_{t}) - \log(S_{t-1})$$
+
+where $S_t$ and $r_t$ are the price and the log-return at time $t$, respectively.
+
+We can hypothesize that the distribution of these returns over a period of time follows a certain distribution.
+Without any prior information, one could be tempted to choose a normal distribution, but empirical studies have shown that the [Student's t-distribution](https://en.wikipedia.org/wiki/Student%27s_t-distribution), which is better at describing the returns.
+Therefore, a simple way of modeling returns is to obtain parameters for a Student's t-distribution which best describes our data.
+From these returns we can use the equation above to make many predictions of prices.
+From these many predictions we can display some useful information like confidence intervals.
+In the Naive Prediction tab you are able to view the 50% and 90% confidence intervals.
+        """
+        )
+    with col.beta_expander("Bayesian Predictor"):
+        st.markdown(
+            r"""
+In the Naive Predictor, parameters for the Student's t-distribution are chosen so as to best match the data. One of these parameters is "location", that is, which return is the most likely.
+Suppose for some data, the most likely return is 0.2%.
+If we predict according to this model, on average our stock would increase 0.2% a day.
+Now, it is possible that our most likely return was actually 0.015%, but we had some crazy days in the past which spiked our returns and skewed them towards a higher average.
+We can't simply remove these values: we would ideally like to know how likely it is that our average returns are 0.15% instead of 0.2%.
+
+The exact probability of the values of "location" (and other parameters of our model) is exactly what a Bayesian analysis gives us.
+And this adds a lot more information about our model.
+Instead of obtaining one value for "location", we will obtain an entire probability distribution, informed by the data of course.
+The distribution after we have informed it with data is called the posterior.
+A very wide posterior can mean that the model is poor (does not match our data), or that the parameter cannot be inferred from the data.
+How would be know this from a simple fitting? We can't!
+
+The most common way of specifyind Bayesian models is by a model. In our case our simple Bayesian model looks like this:
+
+$$\qquad \nu \sim \mathrm{Exponential}$$
+
+$$\qquad \mu \sim \mathrm{Normal}$$
+
+$$\qquad \sigma \sim \mathrm{Half Cauchy}$$
+
+$$\qquad r_t \sim \mathrm{StudentT}(\nu, \mu, \sigma)$$
+
+This model tells us that our returns are distributed according to Student's t, and the prior information we have about its parameters are Exponential, Normal and Half Cauchy (these are essentially arbitrary).
+        """
+        )
+    with col.beta_expander("Stochastic Predictor"):
+        st.markdown("Work in progress!")
+
+
 def write_overview(price, logreturns):
     st.title(f"Overview")
     col1, col2 = st.beta_columns([1.5, 1])
@@ -521,6 +589,7 @@ def write_stochastic_bayesian(price, logreturns):
 
 # Definitions
 PAGES = {
+    "Introduction": write_intro,
     "Overview": write_overview,
     "Naive Prediction": write_naive_prediction,
     "Simple Bayesian": write_simple_bayesian,
