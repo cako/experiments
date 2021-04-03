@@ -533,16 +533,16 @@ coins_all, currencies_all = get_pairs()  # Preload All
 
 
 def main():
-    st.sidebar.title("Locked Staking Analysis")
-    st.sidebar.markdown("Bayesian analysis of locked staking")
+    st.sidebar.title("Crypto Price Ranges")
+    st.sidebar.markdown("Bayesian analysis of cryptocurrencies")
 
     # DASHBOARD
     st.sidebar.markdown("## Dashboard")
     selection = st.sidebar.radio("", list(PAGES.keys()))
 
     # OPTIONS
-    st.sidebar.markdown("## Options")
-    exchange = st.sidebar.selectbox("Exchange", options=exchanges)
+    with st.sidebar.beta_expander("Exchange"):
+        exchange = st.selectbox("", options=exchanges)
     if exchange == "All":
         coins, currencies = coins_all, currencies_all
     else:
@@ -551,12 +551,14 @@ def main():
         idx_coin = coins.index("CHR")
     except ValueError:
         idx_coin = 0
-    coin = st.sidebar.selectbox("Coin", options=coins, index=idx_coin)
+    with st.sidebar.beta_expander("Coin", expanded=True):
+        coin = st.selectbox("", options=coins, index=idx_coin)
     try:
         idx_curr = currencies.index("EUR")
     except ValueError:
         idx_curr = 0
-    curr = st.sidebar.selectbox("Currency", options=currencies, index=idx_curr)
+    with st.sidebar.beta_expander("Currency", expanded=True):
+        curr = st.selectbox("", options=currencies, index=idx_curr)
 
     ohlcv = utils.get_ohlcv(coin, curr)
     price = ohlcv[["high", "low", "open", "close"]].mean(axis=1)
