@@ -23,10 +23,29 @@ def get_exchanges():
 def get_pairs(exchange=None):
     pairs = cc.get_pairs(exchange=exchange)
 
-    coins = list(set(e["fsym"] for v in pairs.values() for e in v if e["fsym"]))
-    currs = list(set(e["tsym"] for v in pairs.values() for e in v if e["tsym"]))
+    coins = list(
+        set(
+            e["fsym"].upper()
+            for v in pairs.values()
+            for e in v
+            if not (
+                e["fsym"].upper().startswith("0X")
+                or e["fsym"].upper().startswith("$")
+            )
+        )
+    )
+    currs = list(
+        set(
+            e["tsym"].upper()
+            for v in pairs.values()
+            for e in v
+            if not (
+                e["tsym"].upper().startswith("0X") or e["tsym"].startswith("$")
+            )
+        )
+    )
 
-    return sorted(coins) + [""], sorted(currs) + [""]
+    return sorted(coins), sorted(currs)
 
 
 exchanges = get_exchanges()
