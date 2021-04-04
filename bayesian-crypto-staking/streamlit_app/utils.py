@@ -1,3 +1,5 @@
+import streamlit as st
+
 import cryptocompare as cc
 import multiprocessing
 import numpy as np
@@ -5,6 +7,20 @@ import pandas as pd
 import pymc3 as pm
 
 CPUS = multiprocessing.cpu_count()
+
+
+@st.cache(allow_output_mutation=True)
+def get_predictions_simple(logreturns, n_sims, n_days):
+    model = get_student_t_model(logreturns)
+    spp = sample_model(model, n_sims)
+    return spp["logreturns"][:, -n_days:]
+
+
+@st.cache(allow_output_mutation=True)
+def get_predictions_stochastic(logreturns, n_sims, n_days):
+    model = get_stochastic_model(logreturns)
+    spp = sample_model(model, n_sims)
+    return spp["logreturns"][:, -n_days:]
 
 
 class OHLCVNotFoundError(Exception):
