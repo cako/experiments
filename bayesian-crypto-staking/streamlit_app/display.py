@@ -25,6 +25,99 @@ PLOTLY_CONFIG = {
 }
 
 
+def price_figure(price, percs_pred, beg_date=None, end_date=None):
+    index_pred = percs_pred[50].index
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=price.index,
+            y=price,
+            mode="lines",
+            name=price.name,
+            line={"color": "black"},
+            showlegend=True,
+        )
+    )
+    cone_color, cone_group = PLOTLY_COLORS[0], "cone90"
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[5],
+            fill=None,
+            mode="lines",
+            legendgroup=cone_group,
+            showlegend=False,
+            line_color=cone_color,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[95],
+            fill="tonexty",  # fill area between trace0 and trace1
+            mode="lines",
+            name=f"90% Confidence",
+            legendgroup=cone_group,
+            line_color=cone_color,
+        )
+    )
+    cone_color, cone_group = PLOTLY_COLORS[1], "cone50"
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[25],
+            fill=None,
+            mode="lines",
+            legendgroup=cone_group,
+            showlegend=False,
+            line_color=cone_color,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[75],
+            fill="tonexty",  # fill area between trace0 and trace1
+            mode="lines",
+            name=f"50% Confidence",
+            legendgroup=cone_group,
+            line_color=cone_color,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=index_pred,
+            y=percs_pred[50],
+            mode="lines",
+            name=f"Predicted price",
+            line={"color": "black", "dash": "dash"},
+        )
+    )
+    if beg_date:
+        fig.add_vline(
+            x=beg_date, line_width=3, line_dash="dash", line_color="gray"
+        )
+    if end_date:
+        fig.add_vline(
+            x=end_date, line_width=3, line_dash="dash", line_color="gray"
+        )
+    fig.update_layout(
+        xaxis_type="date",
+        yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
+        margin=dict(l=0, r=0, b=0, t=80, pad=0),
+        xaxis_rangeslider_visible=True,
+        legend=dict(orientation="h"),
+        height=400,
+        template=PLOTLY_TEMPLATE,
+        xaxis_range=[
+            price.index[-1]
+            - pd.to_timedelta(3 * max(len(index_pred) - 1, 10), unit="d"),
+            index_pred[-1],
+        ],
+    )
+    return fig
+
+
 def write_intro(**kwargs):
     _, col, _ = st.beta_columns([0.2, 1, 0.2])
     col.title("Cryptocurrency Price Ranges")
@@ -165,9 +258,22 @@ def write_overview(**kwargs):
 
 def write_naive_prediction(**kwargs):
     price, logreturns = kwargs["price"], kwargs["logreturns"]
+
+    st.title(f"Naive Prediction")
+
+    # Selectors
+    cols = st.beta_columns([0.45, 0.1, 0.45, 0.1, 0.6, 0.3])
+    n_days = cols[0].slider("Number of days for prediction", 1, 90, 10)
+    n_sims = cols[2].slider("Number simulations", 100, 5000, 500)
+
+    beg_date, end_date = cols[-2].select_slider(
+        "Only use returns between these dates",
+        options=list(price.index.date),
+        value=(price.index[0], price.index[-1]),
+    )
+
     # Process data
-    n_sims, n_days = 500, 20
-    nu, loc, scale = sp.stats.t.fit(logreturns)
+    nu, loc, scale = sp.stats.t.fit(logreturns.loc[beg_date:end_date])
     logrets_pred = sp.stats.t(nu, loc, scale).rvs(size=(n_sims, n_days))
 
     index_pred = pd.date_range(
@@ -180,96 +286,18 @@ def write_naive_prediction(**kwargs):
     x = np.linspace(logreturns.min(), logreturns.max(), 1001)
     pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
 
-    st.title(f"Naive Prediction")
     col1, col2 = st.beta_columns([1.5, 1])
     col1.markdown(f"### Price Prediction")
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=price.index,
-            y=price,
-            mode="lines",
-            name=price.name,
-            line={"color": "black"},
-            showlegend=True,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[0], "cone90"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[5],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[95],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"90% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[1], "cone50"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[25],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[75],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"50% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[50],
-            mode="lines",
-            name=f"Predicted price",
-            line={"color": "black", "dash": "dash"},
-        )
-    )
-
-    fig.update_layout(
-        xaxis_type="date",
-        yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
-        margin=dict(l=0, r=0, b=0, t=80, pad=0),
-        xaxis_rangeslider_visible=True,
-        legend=dict(orientation="h"),
-        height=400,
-        template=PLOTLY_TEMPLATE,
-        xaxis_range=[
-            price.index[-1] - pd.to_timedelta(3 * n_days, unit="d"),
-            index_pred[-1],
-        ],
-    )
+    fig = price_figure(price, percs_pred, beg_date=beg_date, end_date=end_date)
     col1.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
     col2.markdown(f"### Log-returns")
     fig = go.Figure()
     fig.add_trace(
         go.Histogram(
-            x=logreturns, histnorm="probability density", name=price.name
+            x=logreturns.loc[beg_date:end_date],
+            histnorm="probability density",
+            name=price.name,
         )
     )
     fig.add_trace(
@@ -284,7 +312,7 @@ def write_naive_prediction(**kwargs):
     fig.update_layout(
         bargap=0.2,
         showlegend=True,
-        yaxis=dict(type="linear", title="Probability density"),
+        yaxis=dict(type="linear", title="Probability density", side="right"),
         margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
@@ -297,11 +325,35 @@ def write_naive_prediction(**kwargs):
     return
 
 
-def write_simple_bayesian(**kwargs):
-    price, logreturns = kwargs["price"], kwargs["logreturns"]
+def write_bayesian(**kwargs):
+    price, logreturns, kind = (
+        kwargs["price"],
+        kwargs["logreturns"],
+        kwargs["kind"],
+    )
+
+    st.title(kind)
+
+    # Selectors
+    cols = st.beta_columns([0.45, 0.1, 0.45, 0.1, 0.6, 0.3])
+    n_days = cols[0].slider("Number of days for prediction", 1, 90, 10)
+    n_sims = cols[2].slider("Number simulations", 100, 5000, 500)
+
+    beg_date, end_date = cols[-2].select_slider(
+        "Only use returns between these dates",
+        options=list(price.index.date),
+        value=(price.index[0], price.index[-1]),
+    )
+
     # Process data
-    n_sims, n_days = 500, 20
-    logrets_pred = utils.get_predictions_simple(logreturns, n_sims, n_days)
+    if kind.startswith("Simple"):
+        logrets_pred = utils.get_predictions_simple(
+            logreturns.loc[beg_date:end_date], n_sims, n_days
+        )
+    else:
+        logrets_pred = utils.get_predictions_stochastic(
+            logreturns.loc[beg_date:end_date], n_sims, n_days
+        )
 
     index_pred = pd.date_range(
         start=price.index[-1], periods=n_days + 1, freq="D"
@@ -310,229 +362,9 @@ def write_simple_bayesian(**kwargs):
         logrets_pred, starting_price=price[-1], index=index_pred
     )
 
-    # x = np.linspace(logreturns.min(), logreturns.max(), 1001)
-    # pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
-
-    st.title(f"Simple Bayesian Prediction")
     col1, col2 = st.beta_columns([1.5, 1])
     col1.markdown(f"### Price Prediction")
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=price.index,
-            y=price,
-            mode="lines",
-            name=price.name,
-            line={"color": "black"},
-            showlegend=True,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[0], "cone90"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[5],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[95],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"90% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[1], "cone50"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[25],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[75],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"50% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[50],
-            mode="lines",
-            name=f"Predicted price",
-            line={"color": "black", "dash": "dash"},
-        )
-    )
-
-    fig.update_layout(
-        xaxis_type="date",
-        yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
-        margin=dict(l=0, r=0, b=0, t=80, pad=0),
-        xaxis_rangeslider_visible=True,
-        legend=dict(orientation="h"),
-        height=400,
-        template=PLOTLY_TEMPLATE,
-        xaxis_range=[
-            price.index[-1] - pd.to_timedelta(3 * n_days, unit="d"),
-            index_pred[-1],
-        ],
-    )
-    col1.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
-
-    col2.markdown(f"### Log-returns")
-    fig = go.Figure()
-    fig.add_trace(
-        go.Histogram(
-            x=logreturns,
-            histnorm="probability density",
-            name=price.name,
-        )
-    )
-    fig.add_trace(
-        go.Histogram(
-            x=logrets_pred.flatten(),
-            histnorm="probability density",
-            name="Predicted",
-            marker_color="black",
-            opacity=0.5,
-        )
-    )
-    fig.update_layout(
-        bargap=0.2,
-        barmode="overlay",
-        showlegend=True,
-        yaxis=dict(type="linear", title="Probability density"),
-        margin=dict(l=0, r=0, b=0, t=80, pad=0),
-        xaxis_rangeslider_visible=True,
-        legend=dict(orientation="h"),
-        height=400,
-        template=PLOTLY_TEMPLATE,
-        xaxis_range=2 * np.array([-1, 1]) * logreturns.std(),
-    )
-    # fig.update_traces(opacity=0.75)
-    col2.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
-
-    return
-
-
-def write_stochastic_bayesian(**kwargs):
-    price, logreturns = kwargs["price"], kwargs["logreturns"]
-    # Process data
-    n_sims, n_days = 500, 20
-    logrets_pred = utils.get_predictions_stochastic(logreturns, n_sims, n_days)
-
-    index_pred = pd.date_range(
-        start=price.index[-1], periods=n_days + 1, freq="D"
-    )
-    percs_pred = utils.get_percentiles(
-        logrets_pred, starting_price=price[-1], index=index_pred
-    )
-
-    # x = np.linspace(logreturns.min(), logreturns.max(), 1001)
-    # pdf_pred = sp.stats.t.pdf(x, nu, loc, scale)
-
-    st.title(f"Stochastic Bayesian")
-    col1, col2 = st.beta_columns([1.5, 1])
-    col1.markdown(f"### Price Prediction")
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=price.index,
-            y=price,
-            mode="lines",
-            name=price.name,
-            line={"color": "black"},
-            showlegend=True,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[0], "cone90"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[5],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[95],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"90% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    cone_color, cone_group = PLOTLY_COLORS[1], "cone50"
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[25],
-            fill=None,
-            mode="lines",
-            legendgroup=cone_group,
-            showlegend=False,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[75],
-            fill="tonexty",  # fill area between trace0 and trace1
-            mode="lines",
-            name=f"50% Confidence",
-            legendgroup=cone_group,
-            line_color=cone_color,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=index_pred,
-            y=percs_pred[50],
-            mode="lines",
-            name=f"Predicted price",
-            line={"color": "black", "dash": "dash"},
-        )
-    )
-
-    fig.update_layout(
-        xaxis_type="date",
-        yaxis=dict(type="linear", title=f"Price [{price.name.split('-')[1]}]"),
-        margin=dict(l=0, r=0, b=0, t=80, pad=0),
-        xaxis_rangeslider_visible=True,
-        legend=dict(orientation="h"),
-        height=400,
-        template=PLOTLY_TEMPLATE,
-        xaxis_range=[
-            price.index[-1] - pd.to_timedelta(3 * n_days, unit="d"),
-            index_pred[-1],
-        ],
-    )
+    fig = price_figure(price, percs_pred, beg_date=beg_date, end_date=end_date)
     col1.plotly_chart(fig, config=PLOTLY_CONFIG, use_container_width=True)
 
     col2.markdown(f"### Log-returns")

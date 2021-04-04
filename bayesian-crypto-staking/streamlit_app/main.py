@@ -37,8 +37,8 @@ PAGES = {
     "Introduction": display.write_intro,
     "Overview": display.write_overview,
     "Naive Prediction": display.write_naive_prediction,
-    "Simple Bayesian": display.write_simple_bayesian,
-    "Stochastic Bayesian": display.write_stochastic_bayesian,
+    "Simple Bayesian": display.write_bayesian,
+    "Stochastic Bayesian": display.write_bayesian,
 }
 
 
@@ -77,9 +77,9 @@ def main():
     price.name = f"{coin}-{curr}"
     logreturns = utils.get_logreturns(price)
 
-    msg = "Running prediction on {utils.CPUS} cores.\nThese are heavy models, they may take a while!"
+    msg = f"Running prediction on {utils.CPUS} cores.\nThese are heavy models, they may take a while!"
     with st.spinner(msg):
-        PAGES[selection](price=price, logreturns=logreturns)
+        PAGES[selection](price=price, logreturns=logreturns, kind=selection)
 
 
 if __name__ == "__main__":
