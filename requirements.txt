@@ -1,6 +1,7 @@
 pandas==1.2.3
-plotly==4.14.3
-scipy==1.6.1
-streamlit==0.79.0
-cryptocompare==0.7.5
 numpy==1.20.2
+cryptocompare==0.7.5
+plotly==4.14.3
+streamlit==0.79.0
+scipy==1.6.1
+pymc3==3.11.2
