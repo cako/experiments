@@ -8,4 +8,4 @@ Short study into using stochastic models to understand the risks involved in cry
 
 ### [Crypto Price Ranges Streamlit App](https://github.com/cako/experiments/tree/main/crypto-price-ranges)
 
-Use functionality developed above to create an interactive Streamlit app. Hosted at [here](https://share.streamlit.io/cako/experiments/main/price-prediction-app).
+Use functionality developed above to create an interactive Streamlit app. Hosted at [here](https://share.streamlit.io/cako/experiments/main/crypto-price-ranges/).
