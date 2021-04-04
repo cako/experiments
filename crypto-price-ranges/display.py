@@ -389,7 +389,7 @@ def write_bayesian(**kwargs):
         bargap=0.2,
         barmode="overlay",
         showlegend=True,
-        yaxis=dict(type="linear", title="Probability density"),
+        yaxis=dict(type="linear", title="Probability density", side="right"),
         margin=dict(l=0, r=0, b=0, t=80, pad=0),
         xaxis_rangeslider_visible=True,
         legend=dict(orientation="h"),
