@@ -153,7 +153,11 @@ def get_stochastic_model(data):
 def sample_model(model, n_sims):
     with model:
         trace = pm.sample(
-            500, tune=100, chains=4, cores=CPUS, return_inferencedata=False
+            n_sims,
+            tune=n_sims // 2,
+            chains=2,
+            cores=CPUS,
+            return_inferencedata=False,
         )
         spp = pm.sample_posterior_predictive(trace, samples=n_sims)
     return spp
