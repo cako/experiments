@@ -6,7 +6,7 @@ import utils
 import display
 
 st.set_page_config(
-    page_title="Locked Staking Analysis",
+    page_title=" Cryptocurrency Price Ranges",
     page_icon=utils.ICON,
     layout="wide",
     initial_sidebar_state="auto",
