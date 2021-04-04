@@ -264,7 +264,7 @@ def write_naive_prediction(**kwargs):
     # Selectors
     cols = st.beta_columns([0.45, 0.1, 0.45, 0.1, 0.6, 0.3])
     n_days = cols[0].slider("Number of days for prediction", 1, 90, 10)
-    n_sims = cols[2].slider("Number of simulations", 100, 5000, 500)
+    n_sims = cols[2].slider("Number of simulations", 100, 5000, 500, step=100)
 
     beg_date, end_date = cols[-2].select_slider(
         "Only use returns between these dates",
@@ -337,7 +337,7 @@ def write_bayesian(**kwargs):
     # Selectors
     cols = st.beta_columns([0.45, 0.1, 0.45, 0.1, 0.6, 0.3])
     n_days = cols[0].slider("Number of days for prediction", 1, 90, 10)
-    n_sims = cols[2].slider("Number of simulations", 100, 5000, 500)
+    n_sims = cols[2].slider("Number of simulations", 100, 5000, 500, step=100)
 
     beg_date, end_date = cols[-2].select_slider(
         "Only use returns between these dates",
