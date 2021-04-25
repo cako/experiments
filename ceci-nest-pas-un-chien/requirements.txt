@@ -1,6 +1,6 @@
 tensorflow==2.4.1
 matplotlib==3.4.0
 tensorflow_addons==0.12.1
-PIL==7.0.0
+Pillow==7.0.0
 numpy==1.19.2
 tqdm==4.60.0
