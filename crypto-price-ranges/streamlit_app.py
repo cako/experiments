@@ -73,7 +73,7 @@ def main():
 
     # OPTIONS
     with st.sidebar.beta_expander("Exchange"):
-        exchange = st.selectbox("", options=exchanges)
+        exchange = st.selectbox("", options=exchanges, key="Exchange")
     if exchange == "All":
         coins, currencies = coins_all, currencies_all
     else:
@@ -83,13 +83,13 @@ def main():
     except ValueError:
         idx_coin = 0
     with st.sidebar.beta_expander("Coin", expanded=True):
-        coin = st.selectbox("", options=coins, index=idx_coin)
+        coin = st.selectbox("", options=coins, index=idx_coin, key="Coin")
     try:
         idx_curr = currencies.index("EUR")
     except ValueError:
         idx_curr = 0
     with st.sidebar.beta_expander("Currency", expanded=True):
-        curr = st.selectbox("", options=currencies, index=idx_curr)
+        curr = st.selectbox("", options=currencies, index=idx_curr, key="Currency")
 
     ohlcv = utils.get_ohlcv(coin, curr)
     price = ohlcv[["high", "low", "open", "close"]].mean(axis=1)
