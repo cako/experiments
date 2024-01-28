@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # External data loading
-@st.cache
+# @st.cache
 def get_exchanges():
     exchanges = cc.get_exchanges()
     return ["All"] + list(exchanges.keys())
