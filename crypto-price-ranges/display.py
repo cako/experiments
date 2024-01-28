@@ -269,7 +269,7 @@ def write_naive_prediction(**kwargs):
     beg_date, end_date = cols[-2].select_slider(
         "Only use returns between these dates",
         options=list(price.index.date),
-        value=(price.index[0], price.index[-1]),
+        #value=(price.index[0], price.index[-1]),
     )
 
     # Process data
