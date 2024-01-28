@@ -22,7 +22,7 @@ def get_exchanges():
 @st.cache
 def get_pairs(exchange=None):
     pairs = cc.get_pairs(exchange=exchange)
-
+    
     coins = list(
         set(
             e["fsym"].upper()
@@ -33,7 +33,7 @@ def get_pairs(exchange=None):
                 or e["fsym"].upper().startswith("$")
             )
         )
-    )
+    ) if pairs is not None else []
     currs = list(
         set(
             e["tsym"].upper()
@@ -43,7 +43,7 @@ def get_pairs(exchange=None):
                 e["tsym"].upper().startswith("0X") or e["tsym"].startswith("$")
             )
         )
-    )
+    ) if pairs is not None else []
 
     return sorted(coins), sorted(currs)
 
