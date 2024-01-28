@@ -342,7 +342,7 @@ def write_bayesian(**kwargs):
     beg_date, end_date = cols[-2].select_slider(
         "Only use returns between these dates",
         options=list(price.index.date),
-        value=(price.index[0], price.index[-1]),
+        value=(price.index.date[0], price.index.date[-1]),
     )
 
     # Process data
