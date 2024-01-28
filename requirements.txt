@@ -4,7 +4,7 @@ cryptocompare==0.7.5
 plotly==4.14.3
 streamlit==0.79.0
 scipy==1.6.1
-pymc3==3.11.2
+pymc3==3.11.4
 tensorflow_addons==0.12.1
 Pillow==7.0.0
 tensorflow==2.4.1
