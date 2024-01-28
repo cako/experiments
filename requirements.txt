@@ -1,5 +1,5 @@
 pandas==1.2.3
-numpy==1.19.2
+numpy==1.22
 cryptocompare==0.7.5
 plotly==4.14.3
 streamlit==0.79.0
