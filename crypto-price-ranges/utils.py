@@ -4,7 +4,7 @@ import cryptocompare as cc
 import multiprocessing
 import numpy as np
 import pandas as pd
-import pymc3 as pm
+import pymc as pm
 
 CPUS = multiprocessing.cpu_count()
 
